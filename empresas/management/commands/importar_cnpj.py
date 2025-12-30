@@ -5,7 +5,9 @@ from io import BytesIO, TextIOWrapper
 from django.core.management.base import BaseCommand
 from empresas.models import Empresa
 
+
 GITHUB_ZIP_URL = "https://github.com/Moot-bot/CNPJ/releases/download/dados-v1/dados_cnpj.zip"
+
 
 class Command(BaseCommand):
     help = "Importa dados do CNPJ a partir do GitHub Releases"
@@ -80,3 +82,6 @@ class Command(BaseCommand):
             total += len(empresas)
 
         self.stdout.write(self.style.SUCCESS(f"🚀 Importação finalizada: {total} registros"))
+        if Empresa.objects.exists():
+            self.stdout.write("⚠️ Dados já importados. Pulando.")
+            return
