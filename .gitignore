@@ -1,5 +1,34 @@
-# .gitignore
-db.sqlite3
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.DS_Store
+.mypy_cache
+.pytest_cache
+
+# Django
 *.sqlite3
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Dados
 *.csv
 *.xlsx
+*.zip
+dados/
