@@ -6,6 +6,10 @@ from urllib.parse import unquote
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_GET
+import zipfile
+from io import TextIOWrapper
+import requests
 import csv
 
 @csrf_exempt
@@ -75,6 +79,89 @@ def upload_csv(request):
             continue
 
     return JsonResponse({"success": f"{count} registros inseridos"})
+
+@require_GET
+def import_github_release(request):
+    key = request.GET.get("key")
+    if key != "sua_senha_secreta_aqui":
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    url = request.GET.get("url")
+    if not url:
+        return JsonResponse({"error": "URL obrigatória"}, status=400)
+
+    r = requests.get(url, stream=True, timeout=30)
+    r.raise_for_status()
+
+    total = 0
+
+    with zipfile.ZipFile(r.raw) as z:
+        for filename in z.namelist():
+            with z.open(filename) as f:
+                reader = csv.DictReader(
+                    TextIOWrapper(f, encoding="latin-1")
+                )
+
+                buffer = []
+
+                for row in reader:
+                    try:
+                        capital_str = row.get("capital_social", "0").replace(",", ".")
+                        capital = float(capital_str) if capital_str.replace(".", "").isdigit() else 0.0
+
+                        buffer.append(Empresa(
+                            cnpj_basico=row["cnpj_basico"],
+                            cnpj_ordem=row["cnpj_ordem"],
+                            cnpj_dv=row["cnpj_dv"],
+                            identificador_matriz_filial=row["identificador_matriz_filial"],
+                            nome_fantasia=row["nome_fantasia"],
+                            situacao_cadastral=row["situacao_cadastral"],
+                            data_situacao_cadastral=row["data_situacao_cadastral"],
+                            motivo_situacao_cadastral=row["motivo_situacao_cadastral"],
+                            nome_cidade_exterior=row["nome_cidade_exterior"],
+                            pais=row["pais"],
+                            data_inicio_atividade=row["data_inicio_atividade"],
+                            cnae_fiscal_principal=row["cnae_fiscal_principal"],
+                            cnae_fiscal_secundaria=row["cnae_fiscal_secundaria"],
+                            tipo_logradouro=row["tipo_logradouro"],
+                            logradouro=row["logradouro"],
+                            numero=row["numero"],
+                            complemento=row["complemento"],
+                            bairro=row["bairro"],
+                            cep=row["cep"],
+                            uf=row["uf"],
+                            ddd1=row["ddd1"],
+                            telefone1=row["telefone1"],
+                            ddd2=row["ddd2"],
+                            telefone2=row["telefone2"],
+                            ddd_fax=row["ddd_fax"],
+                            fax=row["fax"],
+                            correio_eletronico=row["correio_eletronico"],
+                            situacao_especial=row["situacao_especial"],
+                            data_situacao_especial=row["data_situacao_especial"],
+                            razao_social=row["razao_social"],
+                            qualificacao_responsavel=row["qualificacao_responsavel"],
+                            capital_social=capital,
+                            porte_empresa=row["porte_empresa"],
+                            ente_federativo_responsavel=row["ente_federativo_responsavel"],
+                            municipio=row["municipio"],
+                            natureza_juridica=row["natureza_juridica"],
+                        ))
+
+                        if len(buffer) == 500:
+                            Empresa.objects.bulk_create(buffer)
+                            total += len(buffer)
+                            buffer.clear()
+
+                    except Exception as e:
+                        print("Erro:", e)
+                        continue
+
+                if buffer:
+                    Empresa.objects.bulk_create(buffer)
+                    total += len(buffer)
+
+    return JsonResponse({"success": f"{total} registros importados"})
 
 
 def remover_acentos(texto):

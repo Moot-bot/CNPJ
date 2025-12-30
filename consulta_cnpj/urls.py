@@ -11,10 +11,12 @@ from empresas.views import (
     empresas_por_natureza_juridica_parcial,
     empresas_por_cidade_e_natureza_parcial,
     upload_csv,  # nova view
+    import_github_release,
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("internal/import-release/", import_github_release),
     path('upload-csv/', upload_csv, name='upload_csv'),
     path('', home, name='home'),
     path('api/cidades/', cidades_autocomplete, name='cidades_autocomplete'),
