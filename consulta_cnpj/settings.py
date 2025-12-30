@@ -70,7 +70,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 # Permitir acesso local (para desenvolvimento)
-ALLOWED_HOSTS = ['*','.onrender.com','localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*','.onrender.com','localhost', '127.0.0.1','empresas-cnpj.onrender.com',]
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
