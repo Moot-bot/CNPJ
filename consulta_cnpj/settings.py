@@ -54,9 +54,10 @@ TEMPLATES = [
 ]
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
+        ssl_require=True,
     )
 }
 CACHES = {
@@ -82,3 +83,4 @@ if not DEBUG:
 CSRF_TRUSTED_ORIGINS = [
     "https://empresas-cnpj.onrender.com",
 ]
+DEBUG = os.getenv("DEBUG") == "True"
