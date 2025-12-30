@@ -7,6 +7,75 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import csv
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def upload_csv(request):
+    # 🔒 Proteção simples (substitua por algo mais seguro se quiser)
+    auth_key = request.headers.get("X-Auth-Key")
+    if auth_key != "sua_senha_secreta_aqui":
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    csv_file = request.FILES.get("file")
+    if not csv_file:
+        return JsonResponse({"error": "No file provided"}, status=400)
+
+    decoded_file = csv_file.read().decode("utf-8").splitlines()
+    reader = csv.DictReader(decoded_file)
+
+    count = 0
+    for row in reader:
+        try:
+            capital_str = row.get("capital_social", "0").replace(",", ".")
+            capital = float(capital_str) if capital_str else 0.0
+
+            Empresa.objects.create(
+                cnpj_basico=row["cnpj_basico"],
+                cnpj_ordem=row["cnpj_ordem"],
+                cnpj_dv=row["cnpj_dv"],
+                identificador_matriz_filial=row["identificador_matriz_filial"],
+                nome_fantasia=row["nome_fantasia"],
+                situacao_cadastral=row["situacao_cadastral"],
+                data_situacao_cadastral=row["data_situacao_cadastral"],
+                motivo_situacao_cadastral=row["motivo_situacao_cadastral"],
+                nome_cidade_exterior=row["nome_cidade_exterior"],
+                pais=row["pais"],
+                data_inicio_atividade=row["data_inicio_atividade"],
+                cnae_fiscal_principal=row["cnae_fiscal_principal"],
+                cnae_fiscal_secundaria=row["cnae_fiscal_secundaria"],
+                tipo_logradouro=row["tipo_logradouro"],
+                logradouro=row["logradouro"],
+                numero=row["numero"],
+                complemento=row["complemento"],
+                bairro=row["bairro"],
+                cep=row["cep"],
+                uf=row["uf"],
+                ddd1=row["ddd1"],
+                telefone1=row["telefone1"],
+                ddd2=row["ddd2"],
+                telefone2=row["telefone2"],
+                ddd_fax=row["ddd_fax"],
+                fax=row["fax"],
+                correio_eletronico=row["correio_eletronico"],
+                situacao_especial=row["situacao_especial"],
+                data_situacao_especial=row["data_situacao_especial"],
+                razao_social=row["razao_social"],
+                qualificacao_responsavel=row["qualificacao_responsavel"],
+                capital_social=capital,
+                porte_empresa=row["porte_empresa"],
+                ente_federativo_responsavel=row["ente_federativo_responsavel"],
+                municipio=row["municipio"],
+                natureza_juridica=row["natureza_juridica"],
+            )
+            count += 1
+            if count % 1000 == 0:
+                print(f"{count} registros inseridos...")
+        except Exception as e:
+            print(f"Erro ao inserir linha: {e}")
+            continue
+
+    return JsonResponse({"success": f"{count} registros inseridos"})
+
+
 def remover_acentos(texto):
     """Remove acentos de uma string"""
     if not isinstance(texto, str):
@@ -178,70 +247,3 @@ def empresas_por_cidade_e_natureza_parcial(request, cidade, natureza):
     )[offset:offset + 100]
 
     return JsonResponse(list(empresas), safe=False)
-@csrf_exempt
-@require_http_methods(["POST"])
-def upload_csv(request):
-    # 🔒 Proteção simples (substitua por algo mais seguro se quiser)
-    auth_key = request.headers.get("X-Auth-Key")
-    if auth_key != "sua_senha_secreta_aqui":
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
-    csv_file = request.FILES.get("file")
-    if not csv_file:
-        return JsonResponse({"error": "No file provided"}, status=400)
-
-    decoded_file = csv_file.read().decode("utf-8").splitlines()
-    reader = csv.DictReader(decoded_file)
-
-    count = 0
-    for row in reader:
-        try:
-            capital_str = row.get("capital_social", "0").replace(",", ".")
-            capital = float(capital_str) if capital_str else 0.0
-
-            Empresa.objects.create(
-                cnpj_basico=row["cnpj_basico"],
-                cnpj_ordem=row["cnpj_ordem"],
-                cnpj_dv=row["cnpj_dv"],
-                identificador_matriz_filial=row["identificador_matriz_filial"],
-                nome_fantasia=row["nome_fantasia"],
-                situacao_cadastral=row["situacao_cadastral"],
-                data_situacao_cadastral=row["data_situacao_cadastral"],
-                motivo_situacao_cadastral=row["motivo_situacao_cadastral"],
-                nome_cidade_exterior=row["nome_cidade_exterior"],
-                pais=row["pais"],
-                data_inicio_atividade=row["data_inicio_atividade"],
-                cnae_fiscal_principal=row["cnae_fiscal_principal"],
-                cnae_fiscal_secundaria=row["cnae_fiscal_secundaria"],
-                tipo_logradouro=row["tipo_logradouro"],
-                logradouro=row["logradouro"],
-                numero=row["numero"],
-                complemento=row["complemento"],
-                bairro=row["bairro"],
-                cep=row["cep"],
-                uf=row["uf"],
-                ddd1=row["ddd1"],
-                telefone1=row["telefone1"],
-                ddd2=row["ddd2"],
-                telefone2=row["telefone2"],
-                ddd_fax=row["ddd_fax"],
-                fax=row["fax"],
-                correio_eletronico=row["correio_eletronico"],
-                situacao_especial=row["situacao_especial"],
-                data_situacao_especial=row["data_situacao_especial"],
-                razao_social=row["razao_social"],
-                qualificacao_responsavel=row["qualificacao_responsavel"],
-                capital_social=capital,
-                porte_empresa=row["porte_empresa"],
-                ente_federativo_responsavel=row["ente_federativo_responsavel"],
-                municipio=row["municipio"],
-                natureza_juridica=row["natureza_juridica"],
-            )
-            count += 1
-            if count % 1000 == 0:
-                print(f"{count} registros inseridos...")
-        except Exception as e:
-            print(f"Erro ao inserir linha: {e}")
-            continue
-
-    return JsonResponse({"success": f"{count} registros inseridos"})
