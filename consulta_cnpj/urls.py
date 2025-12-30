@@ -15,7 +15,7 @@ from empresas.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-     path('admin/upload-csv/', upload_csv, name='upload_csv'),
+    path('upload-csv/', upload_csv, name='upload_csv'),
     path('', home, name='home'),
     path('api/cidades/', cidades_autocomplete, name='cidades_autocomplete'),
     path('api/cidade/<str:cidade>/', empresas_por_cidade, name='empresas_por_cidade'),
