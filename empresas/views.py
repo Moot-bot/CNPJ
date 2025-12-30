@@ -5,14 +5,15 @@ from empresas.models import Empresa
 from urllib.parse import unquote
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
 import csv
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def upload_csv(request):
-    # 🔒 Proteção simples (substitua por algo mais seguro se quiser)
+    # 🔑 Defina aqui a senha que você usará no curl
     auth_key = request.headers.get("X-Auth-Key")
-    if auth_key != "sua_senha_secreta_aqui":
+    if auth_key != "sua_senha_secreta_aqui":  # ← Substitua por algo forte depois
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     csv_file = request.FILES.get("file")
@@ -26,7 +27,7 @@ def upload_csv(request):
     for row in reader:
         try:
             capital_str = row.get("capital_social", "0").replace(",", ".")
-            capital = float(capital_str) if capital_str else 0.0
+            capital = float(capital_str) if capital_str.replace(".", "").isdigit() else 0.0
 
             Empresa.objects.create(
                 cnpj_basico=row["cnpj_basico"],
@@ -70,7 +71,7 @@ def upload_csv(request):
             if count % 1000 == 0:
                 print(f"{count} registros inseridos...")
         except Exception as e:
-            print(f"Erro ao inserir linha: {e}")
+            print(f"Erro na linha {count + 1}: {e}")
             continue
 
     return JsonResponse({"success": f"{count} registros inseridos"})
