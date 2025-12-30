@@ -74,3 +74,6 @@ ALLOWED_HOSTS = ['*','.onrender.com','localhost', '127.0.0.1','empresas-cnpj.onr
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://empresas-cnpj.onrender.com",
+]
