@@ -1,4 +1,7 @@
 from django.db import models
+class ImportStatus(models.Model):
+    key = models.CharField(max_length=50, unique=True)
+    done = models.BooleanField(default=False)
 
 class Empresa(models.Model):
     cnpj_basico = models.CharField(max_length=8)
