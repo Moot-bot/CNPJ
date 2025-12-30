@@ -7,10 +7,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
+from django.conf import settings
 import zipfile
 from io import TextIOWrapper
 import requests
 import csv
+import os
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -335,3 +337,50 @@ def empresas_por_cidade_e_natureza_parcial(request, cidade, natureza):
     )[offset:offset + 100]
 
     return JsonResponse(list(empresas), safe=False)
+def importar_dados(request):
+    # trava de segurança
+    if Empresa.objects.exists():
+        return JsonResponse({"status": "dados já importados"})
+
+    url = "https://github.com/Moot-bot/CNPJ/releases/download/dados-v1/dados_cnpj.zip"
+    zip_path = "/tmp/dados.zip"
+    extract_path = "/tmp/dados"
+
+    # download
+    r = requests.get(url, stream=True)
+    with open(zip_path, "wb") as f:
+        for chunk in r.iter_content(1024 * 1024):
+            f.write(chunk)
+
+    # unzip
+    with zipfile.ZipFile(zip_path, "r") as z:
+        z.extractall(extract_path)
+
+    total = 0
+
+    for file in os.listdir(extract_path):
+        if not file.endswith(".csv"):
+            continue
+
+        with open(os.path.join(extract_path, file), encoding="latin-1") as f:
+            reader = csv.DictReader(f)
+            batch = []
+
+            for row in reader:
+                batch.append(Empresa(
+                    cnpj_basico=row["cnpj_basico"],
+                    razao_social=row["razao_social"],
+                    municipio=row["municipio"],
+                    natureza_juridica=row["natureza_juridica"],
+                ))
+
+                if len(batch) == 1000:
+                    Empresa.objects.bulk_create(batch)
+                    batch.clear()
+
+            if batch:
+                Empresa.objects.bulk_create(batch)
+
+        total += 1
+
+    return JsonResponse({"status": "importação concluída", "arquivos": total})
