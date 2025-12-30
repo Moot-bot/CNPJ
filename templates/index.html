@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard de Empresas</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #95a5a6;
+            --white: #ffffff;
+            --gray: #bdc3c7;
+            --border: #ddd;
+            --shadow: rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 0;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--primary);
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .filters-section {
+            background: var(--white);
+            padding: 25px;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            position: relative;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--secondary);
+        }
+
+        button {
+            background: var(--secondary);
+            color: var(--white);
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .autocomplete {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .autocomplete-item:hover {
+            background: var(--light);
+            color: var(--primary);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .filter-btn {
+            background: var(--light);
+            border: 1px solid var(--border);
+            padding: 10px 15px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            color: var(--dark);
+        }
+
+        .filter-btn:hover {
+            background: var(--gray);
+            transform: translateY(-2px);
+        }
+
+        .results-section {
+            background: var(--white);
+            padding: 25px;
+            border-top: 1px solid var(--border);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .results-section h2 {
+            color: var(--primary);
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px var(--shadow);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--light);
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: var(--light);
+        }
+
+        .loading, .error {
+            text-align: center;
+            padding: 30px;
+            font-size: 18px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .loading {
+            background: #e2f0ff;
+            color: #0066cc;
+        }
+
+        .error {
+            background: #ffe2e2;
+            color: #cc0000;
+        }
+
+        /* Cores específicas */
+        .cep {
+            color: var(--info);
+            font-weight: bold;
+        }
+
+        .telefone {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .email {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .search-box {
+                flex-direction: column;
+            }
+            .filters-row {
+                flex-direction: column;
+            }
+            .filter-buttons {
+                justify-content: center;
+            }
+            th, td {
+                font-size: 0.85em;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Dashboard de Empresas</h1>
+            <p>Busque empresas por cidade ou natureza jurídica</p>
+        </div>
+
+        <div class="filters-section">
+            <!-- Filtro por Natureza Jurídica -->
+            <div class="filters-row">
+                <div class="search-box">
+                    <input type="text" id="city-input" placeholder="Comece a digitar o nome da cidade...">
+                    <button onclick="buscarCidade()">Buscar</button>
+                    <div class="autocomplete" id="autocomplete-list"></div>
+                </div>
+            </div>
+
+            <div class="filters-row">
+                <div class="filter-buttons">
+                    <!-- Cidades costeiras -->
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Sao Paulo')">Sao Paulo (SP)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Rio de Janeiro')">Rio de Janeiro (RJ)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Salvador')">Salvador (BA)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Fortaleza')">Fortaleza (CE)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Recife')">Recife (PE)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Porto Alegre')">Porto Alegre (RS)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Manaus')">Manaus (AM)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Brasilia')">Brasilia (DF)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Curitiba')">Curitiba (PR)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Belo Horizonte')">Belo Horizonte (MG)</div>
+                    <div class="filter-btn" onclick="buscarCidadePorNome('Belem')">Belem (PA)</div>
+                </div>
+            </div>
+            <hr style="margin: 20px 0; border: 1px solid #ddd;">
+            <div class="filters-row">
+                <div class="filter-buttons">
+                    <!-- Naturezas Jurídicas -->    
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Empresária Limitada')">Sociedade Empresária Limitada</div>
+                    <div class="filter-btn" onclick="filtrarPorNaturezaParcial('Sociedade Anônima')">Sociedade Anônima</div>
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Empresário (Individual)')">Empresário (Individual)</div>
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Cooperativa')">Cooperativa</div>
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Empresa Pública')">Empresa Pública</div>
+                    <div class="filter-btn" onclick="filtrarPorNaturezaParcial('Sociedade Simples')">Sociedade Simples (todos)</div>
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples Pura')">Sociedade Simples Pura</div>
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples Limitada')">Sociedade Simples Limitada</div>
+                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples em Nome Coletivo')">Sociedade Simples em Nome Coletivo</div>
+                </div>
+            </div>
+            <div class="filters-row" style="justify-content: center; margin-top: 15px;">
+    <button class="filter-btn" style="background: var(--danger); color: white;" onclick="limparFiltros()">
+        🗑️ Limpar Filtros
+    </button>
+</div>
+        </div>
+
+        <div id="results-container" class="results-section">
+            <h2 id="city-title">Empresas em <span id="city-name">...</span></h2>
+            <div id="city-message"></div>
+            <table id="city-table">
+                <thead>
+                    <tr>
+                        <th>CNPJ Básico</th>
+                        <th>Razão Social</th>
+                        <th>Nome Fantasia</th>
+                        <th>Porte</th>
+                        <th>Capital Social</th>
+                        <th>UF</th>
+                        <th>Município</th>
+                        <th>Logradouro</th>
+                        <th>Número</th>
+                        <th>Bairro</th>
+                        <th>CEP</th>
+                        <th>Telefone</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody id="city-body"></tbody>
+            </table>
+            <div style="text-align: center; margin-top: 20px;">
+    <button id="load-more-btn" onclick="carregarMais()" style="display: none; background: var(--secondary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
+        ⬇️ Carregar mais resultados
+    </button>
+</div>
+        </div>
+    </div>
+
+    <script>
+    let cidadeAtual = '';
+    let naturezaAtual = '';
+    let usarFiltroParcial = false;
+    let offsetAtual = 0;
+    let totalCarregado = 0;
+    let temMais = true; // assume que há mais até provar o contrário
+
+    // --- Autocomplete ---
+    document.getElementById('city-input').addEventListener('input', function() {
+        const termo = this.value.trim();
+        const autocomplete = document.getElementById('autocomplete-list');
+        autocomplete.style.display = 'none';
+
+        if (termo.length < 2) return;
+
+        fetch(`/api/cidades/?q=${encodeURIComponent(termo)}`)
+            .then(response => response.json())
+            .then(cidades => {
+                autocomplete.innerHTML = '';
+                if (cidades.length > 0) {
+                    cidades.forEach(cidade => {
+                        const div = document.createElement('div');
+                        div.className = 'autocomplete-item';
+                        div.textContent = cidade.label;
+                        div.onclick = () => {
+                            document.getElementById('city-input').value = cidade.value;
+                            autocomplete.style.display = 'none';
+                            aplicarFiltros(cidade.value, naturezaAtual, usarFiltroParcial);
+                        };
+                        autocomplete.appendChild(div);
+                    });
+                    autocomplete.style.display = 'block';
+                }
+            })
+            .catch(() => autocomplete.style.display = 'none');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-box')) {
+            document.getElementById('autocomplete-list').style.display = 'none';
+        }
+    });
+
+    // --- Funções principais ---
+    function buscarCidade() {
+        const nome = document.getElementById('city-input').value.trim();
+        if (!nome) {
+            alert("Digite o nome de uma cidade");
+            return;
+        }
+        aplicarFiltros(nome, naturezaAtual, usarFiltroParcial);
+    }
+
+    function buscarCidadePorNome(cidade) {
+        aplicarFiltros(cidade, naturezaAtual, usarFiltroParcial);
+    }
+
+    function filtrarPorNatureza(natureza) {
+        usarFiltroParcial = false;
+        aplicarFiltros(cidadeAtual, natureza, false);
+    }
+
+    function filtrarPorNaturezaParcial(natureza) {
+    usarFiltroParcial = true;
+    // Remove "(todos)" se existir
+    const naturezaLimpa = natureza.replace(/\s*\(todos\)$/i, '');
+    aplicarFiltros(cidadeAtual, naturezaLimpa, true);
+}
+
+    function limparFiltros() {
+        cidadeAtual = '';
+        naturezaAtual = '';
+        usarFiltroParcial = false;
+        offsetAtual = 0;
+        document.getElementById('city-input').value = '';
+        mostrarTabelaVazia();
+        document.getElementById('load-more-btn').style.display = 'none';
+    }
+
+    function aplicarFiltros(cidade, natureza, isParcial) {
+        cidadeAtual = cidade || '';
+        naturezaAtual = natureza || '';
+        usarFiltroParcial = !!isParcial;
+        offsetAtual = 0; // reset offset ao aplicar novo filtro
+        temMais = true;
+
+        if (cidade) {
+            document.getElementById('city-input').value = cidade;
+        }
+
+        mostrarLoading();
+        carregarResultados();
+    }
+
+    function carregarMais() {
+        if (!temMais) return;
+        offsetAtual += 100;
+        carregarResultados(true); // true = append
+    }
+
+    function carregarResultados(append = false) {
+        let url = '';
+        if (cidadeAtual && naturezaAtual) {
+            if (usarFiltroParcial) {
+                url = `/api/cidade/${encodeURIComponent(cidadeAtual)}/natureza/partial/${encodeURIComponent(naturezaAtual)}/`;
+            } else {
+                url = `/api/cidade/${encodeURIComponent(cidadeAtual)}/natureza/${encodeURIComponent(naturezaAtual)}/`;
+            }
+        } else if (cidadeAtual) {
+            url = `/api/cidade/${encodeURIComponent(cidadeAtual)}/`;
+        } else if (naturezaAtual) {
+            if (usarFiltroParcial) {
+                url = `/api/natureza/partial/${encodeURIComponent(naturezaAtual)}/`;
+            } else {
+                url = `/api/natureza/${encodeURIComponent(naturezaAtual)}/`;
+            }
+        } else {
+            mostrarTabelaVazia();
+            return;
+        }
+
+        // Adiciona offset
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}offset=${offsetAtual}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(empresas => {
+                if (!append) {
+                    // Primeira carga
+                    if (cidadeAtual && naturezaAtual) {
+                        let titulo = `${cidadeAtual} — ${naturezaAtual}`;
+                        if (usarFiltroParcial) titulo += ' (todos)';
+                        document.getElementById('city-name').textContent = titulo;
+                    } else if (cidadeAtual) {
+                        document.getElementById('city-name').textContent = cidadeAtual;
+                    } else if (naturezaAtual) {
+                        let titulo = `Natureza Jurídica: ${naturezaAtual}`;
+                        if (usarFiltroParcial) titulo += ' (todos)';
+                        document.getElementById('city-name').textContent = titulo;
+                    }
+                    document.getElementById('city-message').innerHTML = '';
+                    document.getElementById('city-body').innerHTML = '';
+                }
+
+                if (empresas.length === 0) {
+                    temMais = false;
+                    if (!append && offsetAtual === 0) {
+                        let msg = 'Nenhuma empresa encontrada.';
+                        if (cidadeAtual && naturezaAtual) {
+                            msg = `Nenhuma empresa em "${cidadeAtual}" com natureza ${usarFiltroParcial ? 'contendo' : 'exatamente'}: "${naturezaAtual}"`;
+                        } else if (cidadeAtual) {
+                            msg = `Nenhuma empresa encontrada em "${cidadeAtual}"`;
+                        } else if (naturezaAtual) {
+                            msg = `Nenhuma empresa com natureza ${usarFiltroParcial ? 'contendo' : 'exatamente'}: "${naturezaAtual}"`;
+                        }
+                        document.getElementById('city-message').innerHTML = `<div class="error">${msg}</div>`;
+                    }
+                    document.getElementById('load-more-btn').style.display = 'none';
+                    return;
+                }
+
+                // Adiciona ao tbody
+                const tbody = document.getElementById('city-body');
+                empresas.forEach(emp => {
+                    const safe = val => val || '–';
+                    const tel = emp.telefone1 || emp.telefone2 || '–';
+                    const email = emp.correio_eletronico || '–';
+                    const capital = emp.capital_social ?
+                        `R$ ${parseFloat(emp.capital_social).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
+                        '–';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${safe(emp.cnpj_basico)}</td>
+                        <td>${safe(emp.razao_social)}</td>
+                        <td>${safe(emp.nome_fantasia)}</td>
+                        <td>${safe(emp.porte_empresa)}</td>
+                        <td>${capital}</td>
+                        <td>${safe(emp.uf)}</td>
+                        <td>${safe(emp.municipio)}</td>
+                        <td>${safe(emp.logradouro)}</td>
+                        <td>${safe(emp.numero)}</td>
+                        <td>${safe(emp.bairro)}</td>
+                        <td class="cep">${safe(emp.cep)}</td>
+                        <td class="telefone">${tel}</td>
+                        <td class="email">${email}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                // Mostra ou esconde o botão "Carregar mais"
+              if (!append && empresas.length < 100) {
+    temMais = false;
+    document.getElementById('load-more-btn').style.display = 'none';
+} else {
+    temMais = true; // Assume que há mais
+    document.getElementById('load-more-btn').style.display = 'block';
+}
+            })
+            .catch(error => {
+                console.error("Erro:", error);
+                if (!append) {
+                    document.getElementById('city-message').innerHTML = `<div class="error">Erro ao carregar empresas.</div>`;
+                }
+                document.getElementById('load-more-btn').style.display = 'none';
+            });
+    }
+
+    function mostrarLoading() {
+        document.getElementById('results-container').style.display = 'block';
+        document.getElementById('city-message').innerHTML = '<div class="loading">Buscando empresas...</div>';
+        document.getElementById('load-more-btn').style.display = 'none';
+    }
+
+    function mostrarTabelaVazia() {
+        document.getElementById('city-name').textContent = '...';
+        document.getElementById('city-message').innerHTML = '<div style="text-align:center; padding:20px; color:#7f8c8d;">Nenhum filtro aplicado. Selecione uma cidade ou natureza jurídica.</div>';
+        document.getElementById('city-body').innerHTML = '';
+        document.getElementById('load-more-btn').style.display = 'none';
+    }
+</script>
+</body>
+</html>
