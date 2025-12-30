@@ -32,3 +32,17 @@ db.sqlite3-journal
 *.xlsx
 *.zip
 dados/
+consulta_cnpj_backup
+# Arquivos grandes
+*.csv
+*.xlsx
+*.zip
+dados/
+db.sqlite3
+*.sqlite3
+
+# Cache Python
+__pycache__/
+*.pyc
+venv/
+.env
