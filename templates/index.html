@@ -1,338 +1,273 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard de Empresas</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --info: #95a5a6;
-            --white: #ffffff;
-            --gray: #bdc3c7;
-            --border: #ddd;
-            --shadow: rgba(0,0,0,0.05);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard de Empresas por Cidade e Natureza Juridica</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f7fa;
-            margin: 0;
-            padding: 0;
-            color: var(--dark);
-        }
-
-        .container {
-            max-width: 100%;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-    background: var(--primary);
-    color: var(--white);
-    text-align: center;
-    padding: 12px 20px; /* ↓ antes era 20px em tudo */
-    box-shadow: 0 2px 8px var(--shadow);
+<style>
+:root {
+    --primary:#2c3e50;
+    --secondary:#3498db;
+    --light:#ecf0f1;
+    --dark:#2c3e50;
+    --danger:#e74c3c;
+    --border:#ddd;
+    --shadow:rgba(0,0,0,.05);
+    --white:#fff;
 }
 
-        .header h1 {
-    font-size: 1.6em; /* ↓ antes 2.2em */
-    margin: 0;
-}
-       .header p {
-    font-size: 0.95em;
-    margin: 4px 0 0 0;
-}
-        .filters-section {
-    background: var(--white);
-    padding: 12px 20px; /* ↓ antes 25px */
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 2px 8px var(--shadow);
+body {
+    margin:0;
+    font-family:Segoe UI,Tahoma,sans-serif;
+    background:#f5f7fa;
 }
 
-        .filters-row {
-    gap: 12px;        /* ↓ antes 20px */
-    margin-bottom: 10px;
+/* ===== LAYOUT ===== */
+.app {
+    display:flex;
+    height:100vh;
+    overflow:hidden;
 }
 
-        .search-box {
-            flex: 1;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            position: relative;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus {
-            border-color: var(--secondary);
-        }
-
-        button {
-            background: var(--secondary);
-            color: var(--white);
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        .autocomplete {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 4px 12px var(--shadow);
-        }
-
-        .autocomplete-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .autocomplete-item:hover {
-            background: var(--light);
-            color: var(--primary);
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .filter-btn {
-            background: var(--light);
-            border: 1px solid var(--border);
-            padding: 10px 15px;
-            text-align: center;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            color: var(--dark);
-        }
-
-        .filter-btn:hover {
-            background: var(--gray);
-            transform: translateY(-2px);
-        }
-
-        .results-section {
-    background: var(--white);
-    padding: 15px; /* ↓ antes 25px */
-    border-top: 1px solid var(--border);
-    flex: 1;
-    overflow-y: auto;
+.sidebar {
+    width:320px;
+    background:var(--white);
+    border-right:1px solid var(--border);
+    box-shadow:2px 0 8px var(--shadow);
+    display:flex;
+    flex-direction:column;
 }
-        .results-section h2 {
-            color: var(--primary);
-            margin-top: 0;
-            font-size: 1.5em;
-        }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            box-shadow: 0 2px 8px var(--shadow);
-            border-radius: 6px;
-            overflow: hidden;
-        }
+.sidebar-header {
+    background:var(--primary);
+    color:#fff;
+    padding:14px;
+}
 
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
+.sidebar-header h1 {
+    font-size:1.2em;
+    margin:0;
+}
 
-        th {
-            background: var(--light);
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+.sidebar-header p {
+    margin:4px 0 0;
+    font-size:.9em;
+}
 
-        tr:hover {
-            background: var(--light);
-        }
+.sidebar-content {
+    padding:12px;
+    overflow-y:auto;
+}
 
-        .loading, .error {
-            text-align: center;
-            padding: 30px;
-            font-size: 18px;
-            border-radius: 6px;
-            margin: 20px 0;
-        }
+/* Toggle mobile */
+.toggle-filters {
+    display:none;
+    background:var(--secondary);
+    color:#fff;
+    border:none;
+    padding:10px;
+    font-size:14px;
+    width:100%;
+    cursor:pointer;
+}
 
-        .loading {
-            background: #e2f0ff;
-            color: #0066cc;
-        }
+/* ===== FILTROS ===== */
+.search-box {
+    display:flex;
+    gap:8px;
+    position:relative;
+}
 
-        .error {
-            background: #ffe2e2;
-            color: #cc0000;
-        }
+input {
+    flex:1;
+    padding:10px;
+    border:2px solid var(--border);
+    border-radius:6px;
+}
 
-        /* Cores específicas */
-        .cep {
-            color: var(--info);
-            font-weight: bold;
-        }
+button {
+    background:var(--secondary);
+    border:none;
+    color:#fff;
+    padding:10px 14px;
+    border-radius:6px;
+    cursor:pointer;
+}
 
-        .telefone {
-            color: var(--success);
-            font-weight: bold;
-        }
+.filter-buttons {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+}
 
-        .email {
-            color: var(--secondary);
-            font-weight: bold;
-        }
+.filter-btn {
+    background:var(--light);
+    border:1px solid var(--border);
+    padding:6px 10px;
+    font-size:12px;
+    border-radius:14px;
+    cursor:pointer;
+}
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 0;
-            }
-            .search-box {
-                flex-direction: column;
-            }
-            .filters-row {
-                flex-direction: column;
-            }
-            .filter-buttons {
-                justify-content: center;
-            }
-            th, td {
-                font-size: 0.85em;
-                padding: 8px;
-            }
-        }
-    </style>
+.filter-btn.danger {
+    background:var(--danger);
+    color:#fff;
+}
+
+/* ===== MAIN ===== */
+.main {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
+
+.results {
+    flex:1;
+    overflow:auto;
+    padding:12px;
+}
+
+table {
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+}
+
+th,td {
+    padding:10px;
+    border-bottom:1px solid var(--border);
+    font-size:.85em;
+}
+
+th {
+    background:var(--light);
+}
+
+/* ===== AUTOCOMPLETE ===== */
+.autocomplete {
+    position:absolute;
+    top:100%;
+    left:0;
+    right:0;
+    background:#fff;
+    border:1px solid var(--border);
+    max-height:200px;
+    overflow-y:auto;
+    display:none;
+    z-index:10;
+}
+
+.autocomplete-item {
+    padding:8px;
+    cursor:pointer;
+}
+
+.autocomplete-item:hover {
+    background:var(--light);
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:900px){
+    .sidebar {
+        position:absolute;
+        z-index:20;
+        left:-100%;
+        transition:left .3s;
+        width:100%;
+    }
+    .sidebar.open {
+        left:0;
+    }
+    .toggle-filters {
+        display:block;
+    }
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏢 Dashboard de Empresas</h1>
-            <p>Busque empresas por cidade ou natureza jurídica</p>
-        </div>
 
-        <div class="filters-section">
-            <!-- Filtro por Natureza Jurídica -->
-            <div class="filters-row">
-                <div class="search-box">
-                    <input type="text" id="city-input" placeholder="Comece a digitar o nome da cidade...">
-                    <button onclick="buscarCidade()">Buscar</button>
-                    <div class="autocomplete" id="autocomplete-list"></div>
-                </div>
-            </div>
+<button class="toggle-filters" onclick="toggleSidebar()">🔍 Filtros</button>
 
-            <div class="filters-row">
-                <div class="filter-buttons">
-                    <!-- Cidades costeiras -->
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Sao Paulo')">Sao Paulo (SP)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Rio de Janeiro')">Rio de Janeiro (RJ)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Salvador')">Salvador (BA)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Fortaleza')">Fortaleza (CE)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Recife')">Recife (PE)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Porto Alegre')">Porto Alegre (RS)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Manaus')">Manaus (AM)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Brasilia')">Brasilia (DF)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Curitiba')">Curitiba (PR)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Belo Horizonte')">Belo Horizonte (MG)</div>
-                    <div class="filter-btn" onclick="buscarCidadePorNome('Belem')">Belem (PA)</div>
-                </div>
-            </div>
-            <hr style="margin: 20px 0; border: 1px solid #ddd;">
-            <div class="filters-row">
-                <div class="filter-buttons">
-                    <!-- Naturezas Jurídicas -->    
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Empresária Limitada')">Sociedade Empresária Limitada</div>
-                    <div class="filter-btn" onclick="filtrarPorNaturezaParcial('Sociedade Anônima')">Sociedade Anônima</div>
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Empresário (Individual)')">Empresário (Individual)</div>
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Cooperativa')">Cooperativa</div>
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Empresa Pública')">Empresa Pública</div>
-                    <div class="filter-btn" onclick="filtrarPorNaturezaParcial('Sociedade Simples')">Sociedade Simples (todos)</div>
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples Pura')">Sociedade Simples Pura</div>
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples Limitada')">Sociedade Simples Limitada</div>
-                    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples em Nome Coletivo')">Sociedade Simples em Nome Coletivo</div>
-                </div>
-            </div>
-            <div class="filters-row" style="justify-content: center; margin-top: 15px;">
-    <button class="filter-btn" style="background: var(--danger); color: white;" onclick="limparFiltros()">
-        🗑️ Limpar Filtros
-    </button>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+
+<div class="sidebar-header">
+    <h1>Dashboard de Empresas</h1>
+    <p>Filtros avançados</p>
 </div>
-        </div>
 
-        <div id="results-container" class="results-section">
-            <h2 id="city-title">Empresas em <span id="city-name">...</span></h2>
-            <div id="city-message"></div>
-            <table id="city-table">
-                <thead>
-                    <tr>
-                        <th>CNPJ Básico</th>
-                        <th>Razão Social</th>
-                        <th>Nome Fantasia</th>
-                        <th>Porte</th>
-                        <th>Capital Social</th>
-                        <th>UF</th>
-                        <th>Município</th>
-                        <th>Logradouro</th>
-                        <th>Número</th>
-                        <th>Bairro</th>
-                        <th>CEP</th>
-                        <th>Telefone</th>
-                        <th>Email</th>
-                    </tr>
-                </thead>
-                <tbody id="city-body"></tbody>
-            </table>
-            <div style="text-align: center; margin-top: 20px;">
-    <button id="load-more-btn" onclick="carregarMais()" style="display: none; background: var(--secondary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
-        ⬇️ Carregar mais resultados
-    </button>
+<div class="sidebar-content">
+
+<div class="search-box">
+    <input id="city-input" placeholder="Cidade...">
+    <button onclick="buscarCidade()">Buscar</button>
+    <div class="autocomplete" id="autocomplete-list"></div>
 </div>
-        </div>
-    </div>
+
+<div class="filter-buttons">
+    <div class="filter-btn" onclick="buscarCidadePorNome('Sao Paulo')">São Paulo</div>
+    <div class="filter-btn" onclick="buscarCidadePorNome('Rio de Janeiro')">Rio De Janeiro</div>
+    <div class="filter-btn" onclick="buscarCidadePorNome('Belem')">Belém</div>
+    <div class="filter-btn" onclick="buscarCidadePorNome('Salvador')">Salvador (BA)</div> 
+    <div class="filter-btn" onclick="buscarCidadePorNome('Fortaleza')">Fortaleza (CE)</div> 
+    <div class="filter-btn" onclick="buscarCidadePorNome('Recife')">Recife (PE)</div> 
+    <div class="filter-btn" onclick="buscarCidadePorNome('Porto Alegre')">Porto Alegre (RS)</div> 
+    <div class="filter-btn" onclick="buscarCidadePorNome('Manaus')">Manaus (AM)</div> 
+    <div class="filter-btn" onclick="buscarCidadePorNome('Brasilia')">Brasilia (DF)</div> <div class="filter-btn" onclick="buscarCidadePorNome('Curitiba')">Curitiba (PR)</div> <div class="filter-btn" onclick="buscarCidadePorNome('Belo Horizonte')">Belo Horizonte (MG)</div>
+</div>
+
+<hr>
+
+<div class="filter-buttons">
+    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Empresária Limitada')">Sociedade Empresária Limitada</div> 
+    <div class="filter-btn" onclick="filtrarPorNaturezaParcial('Sociedade Anônima')">Sociedade Anônima</div> 
+    <div class="filter-btn" onclick="filtrarPorNatureza('Empresário (Individual)')">Empresário (Individual)</div> 
+    <div class="filter-btn" onclick="filtrarPorNatureza('Cooperativa')">Cooperativa</div> 
+    <div class="filter-btn" onclick="filtrarPorNatureza('Empresa Pública')">Empresa Pública</div> 
+    <div class="filter-btn" onclick="filtrarPorNaturezaParcial('Sociedade Simples')">Sociedade Simples (todos)</div> 
+    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples Pura')">Sociedade Simples Pura</div> 
+    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples Limitada')">Sociedade Simples Limitada</div> 
+    <div class="filter-btn" onclick="filtrarPorNatureza('Sociedade Simples em Nome Coletivo')">Sociedade Simples em Nome Coletivo</div>
+</div>
+
+<hr>
+
+<div class="filter-buttons">
+    <div class="filter-btn danger" onclick="limparFiltros()">🗑 Limpar</div>
+</div>
+
+</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+<div class="results" id="results-container">
+
+<h2 id="city-title">Empresas em <span id="city-name">...</span></h2>
+<div id="city-message"></div>
+
+<table>
+<thead>
+<tr>
+<th>CNPJ</th><th>Razão</th><th>Fantasia</th><th>UF</th><th>Município</th>
+</tr>
+</thead>
+<tbody id="city-body"></tbody>
+</table>
+
+<div style="text-align:center;margin:12px">
+<button id="load-more-btn" onclick="carregarMais()" style="display:none">⬇️ Carregar mais</button>
+</div>
+
+</div>
+</main>
+
+</div>
 
     <script>
     let cidadeAtual = '';
@@ -559,6 +494,39 @@
         document.getElementById('city-body').innerHTML = '';
         document.getElementById('load-more-btn').style.display = 'none';
     }
+    function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Persistência na URL
+function syncURL(){
+    const params = new URLSearchParams();
+    if(cidadeAtual) params.set('cidade', cidadeAtual);
+    if(naturezaAtual) params.set('natureza', naturezaAtual);
+    if(usarFiltroParcial) params.set('parcial','1');
+    history.replaceState(null,'','?'+params.toString());
+}
+
+// Hook automático
+const _aplicarFiltros = aplicarFiltros;
+aplicarFiltros = function(...args){
+    _aplicarFiltros(...args);
+    syncURL();
+}
+
+// Load inicial
+window.onload = () => {
+    const p = new URLSearchParams(location.search);
+    if(p.get('cidade')){
+        aplicarFiltros(
+            p.get('cidade'),
+            p.get('natureza') || '',
+            p.get('parcial') === '1'
+        );
+    } else {
+        mostrarTabelaVazia();
+    }
+};
 </script>
 </body>
 </html>
